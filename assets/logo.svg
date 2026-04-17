@@ -1,0 +1,19 @@
+<svg width="400" height="120" viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="120" rx="15" fill="#d72828" />
+
+  <g transform="translate(30, 25)">
+    <path d="M35 5 L65 22 V53 L35 70 L5 53 V22 Z" fill="white" />
+    <circle cx="23" cy="35" r="4" fill="#d72828" />
+    <circle cx="47" cy="35" r="4" fill="#d72828" />
+    <line x1="35" y1="5" x2="35" y2="-5" stroke="white" stroke-width="4" stroke-linecap="round" />
+  </g>
+
+  <text x="110" y="82" font-family="Arial, sans-serif" font-weight="900" font-size="54" fill="white" letter-spacing="2">HETZBOT</text>
+
+  <defs>
+    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="120" rx="15" fill="url(#grid)" />
+</svg>
