@@ -1,0 +1,33 @@
+# Local secrets — populated from your personal vault per session
+.env
+.env.*
+!.env.example
+
+# Tofu
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+*.auto.tfvars
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Local tofu variable overrides (non-hosts.tfvars values)
+secrets.auto.tfvars
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Temporary
+tmp/
+*.bak

@@ -1,0 +1,7 @@
+{
+  "agent": {
+    "instruction_files": [
+      "CLAUDE.md"
+    ]
+  }
+}

@@ -1,0 +1,87 @@
+set dotenv-load := true
+
+# HETZBOT_ROOT must be set in .env — e.g. HETZBOT_ROOT=../hetzbot.
+# This fleet owns its own tofu/, hosts.tfvars, services/.
+# It only shells out to $HETZBOT_ROOT for skills (deploy, review, etc.).
+
+_default:
+    @just --list --unsorted
+
+_check:
+    @test -n "${HETZBOT_ROOT:-}" || { echo "HETZBOT_ROOT not set in .env" >&2; exit 1; }
+    @test -d "$HETZBOT_ROOT/skills" || { echo "HETZBOT_ROOT=$HETZBOT_ROOT missing skills/" >&2; exit 1; }
+
+# --- Tofu lifecycle (runs against this fleet's own tofu/) ---
+
+init:
+    tofu -chdir=tofu init \
+        -backend-config="bucket=$OS_BUCKET" \
+        -backend-config="region=$OS_REGION" \
+        -backend-config="endpoints={s3=\"$OS_ENDPOINT\"}" \
+        -backend-config="access_key=$AWS_ACCESS_KEY_ID" \
+        -backend-config="secret_key=$AWS_SECRET_ACCESS_KEY"
+
+plan:
+    tofu -chdir=tofu plan \
+        -var-file=../hosts.tfvars \
+        -var="domain=${DOMAIN:-}" \
+        -var="tailscale_authkey=${TAILSCALE_AUTHKEY:-}" \
+        -var="console_root_password=$CONSOLE_ROOT_PASSWORD" \
+        -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
+        -var="restic_password=$RESTIC_PASSWORD" \
+        -var="os_access_key=$AWS_ACCESS_KEY_ID" \
+        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY"
+
+apply:
+    tofu -chdir=tofu apply \
+        -var-file=../hosts.tfvars \
+        -var="domain=${DOMAIN:-}" \
+        -var="tailscale_authkey=${TAILSCALE_AUTHKEY:-}" \
+        -var="console_root_password=$CONSOLE_ROOT_PASSWORD" \
+        -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
+        -var="restic_password=$RESTIC_PASSWORD" \
+        -var="os_access_key=$AWS_ACCESS_KEY_ID" \
+        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY"
+
+destroy:
+    tofu -chdir=tofu destroy \
+        -var-file=../hosts.tfvars \
+        -var="domain=${DOMAIN:-}" \
+        -var="tailscale_authkey=${TAILSCALE_AUTHKEY:-}" \
+        -var="console_root_password=$CONSOLE_ROOT_PASSWORD" \
+        -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
+        -var="restic_password=$RESTIC_PASSWORD" \
+        -var="os_access_key=$AWS_ACCESS_KEY_ID" \
+        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY"
+
+# --- Deploy / audit (shell out to hetzbot's skills) ---
+
+deploy host: _check
+    HETZBOT_ROOT="$HETZBOT_ROOT" HETZBOT_FLEET_ROOT="$(pwd)" \
+        bash "$HETZBOT_ROOT/skills/ops/deploy/deploy.sh" {{host}}
+
+deploy-dry host: _check
+    HETZBOT_ROOT="$HETZBOT_ROOT" HETZBOT_FLEET_ROOT="$(pwd)" \
+        bash "$HETZBOT_ROOT/skills/ops/deploy/deploy.sh" {{host}} --dry-run
+
+review host: _check
+    HETZBOT_ROOT="$HETZBOT_ROOT" HETZBOT_FLEET_ROOT="$(pwd)" \
+        bash "$HETZBOT_ROOT/skills/hetzner/review-host/review.sh" {{host}}
+
+# --- Operations ---
+
+ssh host:
+    ssh {{host}}
+
+logs host service:
+    ssh {{host}} journalctl -u {{service}} -f
+
+backup host:
+    ssh {{host}} sudo /opt/hetzbot/skills/ops/deploy/backup-now.sh
+
+rotate host service:
+    ssh {{host}} sudo /opt/hetzbot/skills/infra/postgres/rotate.sh {{service}}
+
+status: _check
+    HETZBOT_ROOT="$HETZBOT_ROOT" HETZBOT_FLEET_ROOT="$(pwd)" \
+        bash "$HETZBOT_ROOT/skills/hetzner/check-fleet/status.sh"

@@ -1,0 +1,20 @@
+# Local session creds
+.env
+.env.*
+!.env.example
+
+# Tofu
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+*.auto.tfvars
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~

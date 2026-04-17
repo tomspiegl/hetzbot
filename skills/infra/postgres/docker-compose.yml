@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      # Superuser password — used only by deploy helpers inside the host.
+      # Per-service DBs and roles have their own generated passwords;
+      # this one never leaves the host.
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_superuser
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    secrets:
+      - postgres_superuser
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: journald
+      options:
+        tag: postgres
+
+secrets:
+  postgres_superuser:
+    file: /etc/hetzbot/postgres_superuser
+
+volumes:
+  pgdata:
+    name: pgdata
