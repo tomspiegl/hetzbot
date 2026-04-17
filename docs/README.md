@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="../assets/logo.svg" alt="hetzbot" width="400">
-</p>
+<img src="../assets/logo.svg" alt="hetzbot" width="240">
 
 # hetzbot handbook
 

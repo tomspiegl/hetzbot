@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/logo.svg" alt="hetzbot" width="400">
-</p>
+<img src="assets/logo.svg" alt="hetzbot" width="240">
 
 Agent-managed hosting framework for Hetzner Cloud. You clone this repo,
 scaffold a **fleet** repo beside it, and hand it to a coding agent
