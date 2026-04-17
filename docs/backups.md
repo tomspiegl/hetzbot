@@ -1,3 +1,5 @@
+<img src="../assets/icon.svg" alt="" width="48" align="left">
+
 # Backups & Recovery
 
 One tool: **restic**, encrypted, off-host, from day one.

@@ -1,3 +1,5 @@
+<img src="../assets/icon.svg" alt="" width="48" align="left">
+
 # Concepts
 
 ## What hetzbot is

@@ -1,3 +1,5 @@
+<img src="../assets/icon.svg" alt="" width="48" align="left">
+
 # Operations
 
 Day-to-day. All commands run from the **fleet repo** (not hetzbot).

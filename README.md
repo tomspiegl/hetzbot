@@ -20,7 +20,9 @@ git clone https://github.com/tomspiegl/hetzbot
 **2. Open a coding agent in the same directory:**
 
 ```bash
-claude   # Claude Code, or equivalent
+claude   # Claude Code — https://claude.ai/code
+# or
+pi       # pi (pi.dev) — npm install -g @mariozechner/pi-coding-agent
 ```
 
 **3. Paste this prompt:**

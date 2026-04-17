@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/logo.svg" alt="hetzbot" width="400">
+</p>
+
 # hetzbot handbook
 
 Agent-managed Hetzner Cloud hosting. Drop in a fleet repo; add hosts;
