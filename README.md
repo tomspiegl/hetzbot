@@ -11,7 +11,6 @@ Tailscale-only access, encrypted off-host backups (restic).
 **1. Clone this repo:**
 
 ```bash
-mkdir -p ~/Develop && cd ~/Develop
 git clone https://github.com/tomspiegl/hetzbot
 ```
 
@@ -26,10 +25,7 @@ pi       # pi (pi.dev) — npm install -g @mariozechner/pi-coding-agent
 **3. Paste this prompt:**
 
 ```
-I'd like to set up a new hetzbot fleet named `my-fleet` at
-`~/my-fleet`. First walk me through the external prerequisites.
-Then run the `init-fleet` skill to scaffold the fleet repo.
-Finally, guide me through adding my first host with `add-host`.
+I'd like to set up a new hetzbot fleet named my-fleet at ~/my-fleet. First walk me through the external prerequisites. Then run the init-fleet skill to scaffold the fleet repo. Finally, guide me through adding my first host with add-host.
 ```
 
 The agent reads `CLAUDE.md`, consults the relevant `SKILL.md` files,
