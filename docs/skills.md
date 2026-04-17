@@ -1,5 +1,3 @@
-<img src="../assets/icon.svg" alt="" width="48" align="left">
-
 # Skills
 
 Skills are how the agent does things. Each skill is a small directory

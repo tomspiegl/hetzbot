@@ -90,7 +90,7 @@ you share their session; treat that as a privilege, not an affordance.
 | `skills/infra/` | Installable daemons/stacks — nouns (docker, restic, caddy, postgres). Each has `install.sh` + `review.sh`; stateful ones add `docker-compose.yml` + `backup.sh`. |
 | `skills/runtimes/` | Language runtimes installed on-demand (node, python). |
 | `skills/hetzner/init-fleet/template/` | What a fleet repo looks like — `tofu/`, `hosts.tfvars`, `.env.example`, `justfile`, etc. Copied into the fleet on scaffold. |
-| `docs/` | End-user handbook. Start at `docs/INDEX.md`. Split into concepts, architecture (mermaid), quickstart, skills, security, backups, operations, non-goals. |
+| `docs/` | End-user handbook. Start at `docs/README.md`. Split into concepts, architecture (mermaid), quickstart, skills, security, backups, operations, non-goals. |
 | `justfile` | Single target — `tmux`. Fleet bootstrap is `bash skills/hetzner/init-fleet/init-fleet.sh <path> <name>`. All infra + deploy commands live in the fleet's justfile. |
 
 ### In each fleet repo (generated)

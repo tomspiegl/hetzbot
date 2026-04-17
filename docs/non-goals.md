@@ -1,5 +1,3 @@
-<img src="../assets/icon.svg" alt="" width="48" align="left">
-
 # Non-goals
 
 What hetzbot deliberately doesn't do, and the named upgrade path for

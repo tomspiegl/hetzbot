@@ -39,5 +39,4 @@ and walks you through — one question at a time.
 
 ## Documentation
 
-Full handbook in [`docs/`](docs/) — start at
-[docs/INDEX.md](docs/INDEX.md).
+Full handbook in [`docs/`](docs/).
