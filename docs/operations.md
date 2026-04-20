@@ -16,6 +16,8 @@ Day-to-day. All commands run from the **fleet repo** (not hetzbot).
 | `just ssh <host>` | SSH via Tailscale MagicDNS. |
 | `just logs <host> <service>` | Tail journald live. |
 | `just backup <host>` | Force a backup run now. |
+| `just snapshot <host>` | List restic snapshots for a host. |
+| `just verify <host>` | End-to-end verification (backups, Postgres, timers, Google API). |
 | `just rotate <host> <service>` | Rotate a service's Postgres password. |
 | `just destroy` | Destroy the **entire** fleet. Rarely used; asks for confirmation. |
 

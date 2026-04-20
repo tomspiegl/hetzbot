@@ -110,7 +110,19 @@ while not env.TAILSCALE_AUTHKEY or not env.TAILSCALE_AUTHKEY.startswith("tskey-"
         fail("no Tailscale auth key")
     reload_env()
 
-# 5. Apply tofu with operator_ip and ssh_keys for bootstrap access.
+# 5. Create Object Storage bucket for this host's restic backups.
+
+inform(f"""Create a bucket named '{host_name}' in Hetzner Object Storage:
+  1. Open https://console.hetzner.cloud → Object Storage
+  2. Create bucket: name='{host_name}', region matching the host (e.g. fsn1)
+  3. Use the same access/secret keys already in .env""")
+
+while True:
+    if ask(f"Bucket '{host_name}' created?", choices=["yes", "abort"]) == "abort":
+        fail("no bucket")
+    break
+
+# 6. Apply tofu with operator_ip and ssh_keys for bootstrap access.
 
 run(f"tofu -chdir=tofu plan -var='operator_ip={operator_ip}' -var='ssh_keys=[{ssh_key_id}]'")
 show_plan()
@@ -122,7 +134,7 @@ if run(f"tofu -chdir=tofu apply -var='operator_ip={operator_ip}' -var='ssh_keys=
 
 server_ip = run("tofu -chdir=tofu output -json hosts").json[host_name]["ipv4"]
 
-# 6. Wait for SSH on public IP (cloud-init takes ~2-4 min).
+# 7. Wait for SSH on public IP (cloud-init takes ~2-4 min).
 
 waited = 0
 while True:
@@ -135,7 +147,7 @@ while True:
     if waited % 60 == 0:
         inform(f"waiting for SSH... {waited}s")
 
-# 7. Verify cloud-init completed and Tailscale joined.
+# 8. Verify cloud-init completed and Tailscale joined.
 
 run(f"ssh root@{server_ip} 'cloud-init status --wait'")
 run(f"ssh root@{server_ip} 'tailscale status'")
@@ -146,7 +158,7 @@ if host_name not in tailscale_online_peers():
     run(f"ssh root@{server_ip} 'journalctl -u tailscaled --no-pager | tail -20'")
     fail("Tailscale join failed — check logs above")
 
-# 8. Verify SSH over tailnet.
+# 9. Verify SSH over tailnet.
 
 for attempt in range(1, 6):
     if run(f"ssh -o ConnectTimeout=5 {host_name} uptime").exit_code == 0:
@@ -155,17 +167,21 @@ for attempt in range(1, 6):
 else:
     fail(f"can't SSH {host_name} over Tailscale after 5 attempts")
 
-# 9. Remove bootstrap SSH access — clear operator_ip only.
-# ssh_keys is in ignore_changes so it won't force server replacement,
-# but we only need to remove the firewall rule anyway.
+# 10. Remove bootstrap SSH access and harden sshd.
 
-inform("Tailscale working. Removing bootstrap SSH access...")
+inform("Tailscale working. Locking down SSH...")
+
+# Remove the UFW rule that allowed SSH from the operator IP.
+run(f"ssh root@{host_name} 'ufw delete allow from {operator_ip} to any port 22 proto tcp'")
+
+# Restrict sshd to Tailscale interface only (no public listener).
+ts_ip = run(f"ssh root@{host_name} 'tailscale ip -4'").stdout.strip()
+run(f"ssh root@{host_name} 'echo \"ListenAddress {ts_ip}\" >> /etc/ssh/sshd_config && sshd -t && systemctl reload sshd'")
+
+# Remove the port-22 rule from the Hetzner Cloud firewall.
 run("tofu -chdir=tofu apply -var='operator_ip='")
-# This removes the port-22 rule from the Hetzner firewall.
-# The SSH key on the server is harmless — the firewall blocks 22.
-# UFW rule stays but is unreachable through the firewall.
 
-# 10. Run the reviewer.
+# 11. Run the reviewer.
 
 exit_code = run(f"bash $HETZBOT_ROOT/skills/hetzner/review-host/review.sh {host_name}").exit_code
 if exit_code == 2:    # CRITICAL
@@ -174,7 +190,7 @@ if exit_code == 2:    # CRITICAL
 elif exit_code == 1:  # HIGH
     warn("reviewer reports HIGH findings — continue with caveat")
 
-# 11. Done.
+# 12. Done.
 
 inform(f"""Host {host_name} is online and on the tailnet.
 Bootstrap SSH access has been removed.

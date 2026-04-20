@@ -16,7 +16,7 @@ graph LR
     CD[/var/lib/caddy/] --> R
     LOG[/var/log/archive/] --> R
     ETC[/etc/] --> R
-    R --> OS[Hetzner Object Storage<br/>client-side encrypted]
+    R --> OS[Per-host S3 bucket<br/>client-side encrypted]
 ```
 
 - **`backup-now.sh`** is a thin orchestrator. It discovers every

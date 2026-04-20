@@ -27,7 +27,7 @@ plan:
         -var="domain=${DOMAIN:-}" \
         -var="tailscale_authkey=${TAILSCALE_AUTHKEY:-}" \
         -var="console_root_password=$CONSOLE_ROOT_PASSWORD" \
-        -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
+        -var="os_endpoint=$OS_ENDPOINT" \
         -var="restic_password=$RESTIC_PASSWORD" \
         -var="os_access_key=$AWS_ACCESS_KEY_ID" \
         -var="os_secret_key=$AWS_SECRET_ACCESS_KEY" \
@@ -40,7 +40,7 @@ apply:
         -var="domain=${DOMAIN:-}" \
         -var="tailscale_authkey=${TAILSCALE_AUTHKEY:-}" \
         -var="console_root_password=$CONSOLE_ROOT_PASSWORD" \
-        -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
+        -var="os_endpoint=$OS_ENDPOINT" \
         -var="restic_password=$RESTIC_PASSWORD" \
         -var="os_access_key=$AWS_ACCESS_KEY_ID" \
         -var="os_secret_key=$AWS_SECRET_ACCESS_KEY" \
@@ -53,7 +53,7 @@ destroy:
         -var="domain=${DOMAIN:-}" \
         -var="tailscale_authkey=${TAILSCALE_AUTHKEY:-}" \
         -var="console_root_password=$CONSOLE_ROOT_PASSWORD" \
-        -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
+        -var="os_endpoint=$OS_ENDPOINT" \
         -var="restic_password=$RESTIC_PASSWORD" \
         -var="os_access_key=$AWS_ACCESS_KEY_ID" \
         -var="os_secret_key=$AWS_SECRET_ACCESS_KEY" \
@@ -77,16 +77,22 @@ review host: _check
 # --- Operations ---
 
 ssh host:
-    ssh {{host}}
+    ssh root@{{host}}
 
 logs host service:
-    ssh {{host}} journalctl -u {{service}} -f
+    ssh root@{{host}} journalctl -u {{service}} -f
 
 backup host:
-    ssh {{host}} sudo /opt/hetzbot/skills/ops/deploy/backup-now.sh
+    ssh root@{{host}} 'set -a && . /etc/hetzbot/restic.env && set +a && /opt/hetzbot/skills/ops/deploy/backup-now.sh'
+
+snapshot host:
+    ssh root@{{host}} 'set -a && . /etc/hetzbot/restic.env && set +a && restic snapshots'
 
 rotate host service:
-    ssh {{host}} sudo /opt/hetzbot/skills/infra/postgres/rotate.sh {{service}}
+    ssh root@{{host}} /opt/hetzbot/skills/infra/postgres/rotate.sh {{service}}
+
+verify host:
+    ssh root@{{host}} 'set -a && . /etc/hetzbot/restic.env && set +a && /opt/hetzbot/skills/hetzner/verify-fleet/verify.sh'
 
 status: _check
     HETZBOT_ROOT="$HETZBOT_ROOT" HETZBOT_FLEET_ROOT="$(pwd)" \

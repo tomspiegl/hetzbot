@@ -81,6 +81,14 @@ write_files:
       KbdInteractiveAuthentication no
       AuthenticationMethods publickey
 
+  # --- sshd must start after tailscaled (ListenAddress is Tailscale IP) ---
+  - path: /etc/systemd/system/ssh.service.d/after-tailscale.conf
+    permissions: "0644"
+    content: |
+      [Unit]
+      After=tailscaled.service
+      Wants=tailscaled.service
+
   # --- Operator CLI helpers dir ---
   - path: /opt/hetzbot/README
     permissions: "0644"

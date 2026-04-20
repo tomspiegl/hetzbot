@@ -37,8 +37,8 @@ variable "console_root_password" {
   sensitive   = true
 }
 
-variable "restic_repo" {
-  description = "Restic S3 URL for host-initiated backups."
+variable "os_endpoint" {
+  description = "Hetzner Object Storage endpoint (e.g. https://fsn1.your-objectstorage.com)."
   type        = string
 }
 

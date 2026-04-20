@@ -5,7 +5,7 @@ locals {
       public                = h.public
       tailscale_authkey     = var.tailscale_authkey
       console_root_password = var.console_root_password
-      restic_repo           = var.restic_repo
+      restic_repo           = "s3:${var.os_endpoint}/${name}"
       restic_password       = var.restic_password
       os_access_key         = var.os_access_key
       os_secret_key         = var.os_secret_key

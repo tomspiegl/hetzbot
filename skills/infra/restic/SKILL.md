@@ -18,17 +18,18 @@ restic.
 
 ## Bucket layout
 
-Restic shares the fleet's Object Storage bucket with tofu state.
-Each lives under its own prefix to keep things clean:
+Each host gets its own Object Storage bucket for restic backups,
+named after the host. Tofu state lives in a separate fleet-wide bucket.
 
-| Prefix | Written by | Contents |
-|---|---|---|
-| `<fleet-name>/` | OpenTofu | `terraform.tfstate` |
-| `restic/` | Restic | Encrypted backup repo (data, index, keys, snapshots) |
+| Bucket | Contents |
+|---|---|
+| `<fleet-name>-state` | OpenTofu `terraform.tfstate` |
+| `<hostname>` | Restic backup repo for that host |
 
-The `RESTIC_REPOSITORY` value includes the `/restic` suffix, e.g.
-`s3:https://fsn1.your-objectstorage.com/hetz-fleet-state/restic`.
-The fleet's justfile constructs this as `s3:$OS_ENDPOINT/$OS_BUCKET/restic`.
+The `RESTIC_REPOSITORY` is `s3:<os-endpoint>/<hostname>`, e.g.
+`s3:https://fsn1.your-objectstorage.com/hetz-1`. Tofu computes this
+per host from `var.os_endpoint` + the hostname. The bucket must be
+created in Hetzner Object Storage before the first backup runs.
 
 ## How credentials flow
 

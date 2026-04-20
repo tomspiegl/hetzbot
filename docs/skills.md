@@ -31,6 +31,8 @@ review.sh, aggregates results, prints summary.
 | `remove-host` | Safely destroy a host. Destructive, double-confirmed. | "remove hetz-2", "decommission", "destroy the box" |
 | `check-fleet` | Quick pulse on the whole fleet. | "is everything up", "status" |
 | `review-host` | Severity-tagged audit of one host (orchestrator). | "review hetz-1", "audit <host>", "is it healthy" |
+| `verify-fleet` | Post-setup end-to-end verification (backups, Postgres, timers, Google API, tofu state). | "verify fleet", "is everything working" |
+| `snapshot-host` | Manual Hetzner snapshot before risky changes. | "snapshot hetz-1" |
 
 ### `skills/ops/` — service lifecycle (verbs)
 
@@ -49,6 +51,7 @@ review.sh, aggregates results, prints summary.
 | `restic` | Backup tool. | First deploy on any host |
 | `caddy` | Reverse proxy + ACME. Ships `assemble.sh` that concatenates per-service snippets. | First deploy on a `public = true` host |
 | `postgres` | Shared Postgres 16 stack + per-service `install.sh` + `rotate.sh` + `backup.sh`. | First deploy |
+| `google` | Shared Google Workspace API access (Gmail, Drive, Sheets). OAuth2 credentials deployed to hosts. | "add google", "gmail access" |
 
 ### `skills/runtimes/` — language runtimes
 

@@ -118,7 +118,7 @@ graph LR
     B --> R[restic backup]
     D --> R
     SRV[/srv /var/lib/docker /etc .../] --> R
-    R --> OS[Hetzner Object Storage<br/>encrypted at rest]
+    R --> OS[Per-host S3 bucket<br/>client-side encrypted]
 ```
 
 Each stateful skill ships its own `backup.sh`. `backup-now.sh` is a
@@ -168,8 +168,8 @@ See [skills.md](skills.md) for the catalog with usage notes.
 ```mermaid
 graph TB
     subgraph FS["File system layers"]
-        TF[tofu state<br/>Object Storage, encrypted]
-        RES[restic repo<br/>Object Storage, encrypted]
+        TF[tofu state<br/>fleet-state S3 bucket]
+        RES[restic repos<br/>per-host S3 bucket, encrypted]
         ENV[.env + personal vault<br/>operator laptop only]
     end
     subgraph Source["Source of truth"]
@@ -184,8 +184,10 @@ graph TB
     HOSTSVC --> RES
 ```
 
-- **Infra state** — tofu state file in Object Storage.
-- **Data state** — restic snapshots in Object Storage.
+- **Infra state** — tofu state in the fleet's S3 bucket
+  (`<fleet>-state/`).
+- **Data state** — restic snapshots in per-host S3 buckets (one bucket
+  per host, e.g. `hetz-1`).
 - **Config state** — committed in the fleet repo.
 - **Session creds** — local `.env`, populated from your personal vault per
   session, cleared after.

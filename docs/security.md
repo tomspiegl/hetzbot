@@ -28,7 +28,8 @@ graph TB
 2. **Host ufw** — `default deny incoming`, `allow in on tailscale0`,
    conditional `allow 443/tcp` on public hosts.
 3. **sshd hardening** — `PasswordAuthentication no`, `PermitRootLogin
-   no`, `ListenAddress tailscale0` only. No public SSH.
+   prohibit-password`, `ListenAddress <tailscale-ip>` only. sshd
+   depends on tailscaled via systemd drop-in. No public SSH.
 4. **Service binds** — every service binds `127.0.0.1`, never
    `0.0.0.0`. Even with misconfigured firewall, public surface stays
    tiny.
