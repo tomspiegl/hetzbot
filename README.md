@@ -40,6 +40,20 @@ graph TB
     H1 -->|encrypted backups| B1
     H2 -->|encrypted backups| B2
     Agent -->|state read/write| TFS
+
+    style Laptop fill:#e8f4f8,stroke:#2196F3,stroke-width:2px,color:#1a1a1a
+    style Hetzner fill:#fff3e0,stroke:#FF9800,stroke-width:2px,color:#1a1a1a
+    style HB fill:#e8f5e9,stroke:#4CAF50,stroke-width:1px,color:#1a1a1a
+    style HF fill:#e8f5e9,stroke:#4CAF50,stroke-width:1px,color:#1a1a1a
+    style Servers fill:#fce4ec,stroke:#E91E63,stroke-width:1px,color:#1a1a1a
+    style S3 fill:#f3e5f5,stroke:#9C27B0,stroke-width:1px,color:#1a1a1a
+    style Agent fill:#bbdefb,stroke:#1976D2,stroke-width:2px,color:#1a1a1a
+    style API fill:#ffe0b2,stroke:#F57C00,stroke-width:1px,color:#1a1a1a
+    style H1 fill:#f8bbd0,stroke:#C2185B,color:#1a1a1a
+    style H2 fill:#f8bbd0,stroke:#C2185B,color:#1a1a1a
+    style B1 fill:#e1bee7,stroke:#7B1FA2,color:#1a1a1a
+    style B2 fill:#e1bee7,stroke:#7B1FA2,color:#1a1a1a
+    style TFS fill:#e1bee7,stroke:#7B1FA2,color:#1a1a1a
 ```
 
 **Fleet setup:** One fleet repo defines your servers (`hosts.tfvars`)
