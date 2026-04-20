@@ -4,6 +4,15 @@ Agent-managed hosting on Hetzner Cloud. Provision servers, deploy
 services, back up data, review security — all driven by a coding
 agent following documented skill playbooks.
 
+## Concept
+
+Two repos sit side by side: **hetzbot** (the framework — skills,
+templates, docs) and your **fleet repo** (servers, services, secrets).
+A coding agent reads the skill playbooks and operates the fleet for
+you — one question at a time. Infrastructure is OpenTofu, access is
+Tailscale-only, backups are encrypted to S3. No SSH keys, no port 80,
+no manual config.
+
 ## How it works
 
 ```mermaid
