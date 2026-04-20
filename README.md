@@ -2,14 +2,14 @@
 
 Agent-managed hosting on Hetzner Cloud. Provision servers, deploy
 services, back up data, review security — all driven by a coding
-agent (Claude Code) following documented skill playbooks.
+agent following documented skill playbooks.
 
 ## How it works
 
 ```mermaid
 graph TB
     subgraph Operator["Operator laptop"]
-        Agent[Coding agent<br/>Claude Code]
+        Agent[Coding agent]
         Fleet[Fleet repo<br/>hosts.tfvars, services/, .env]
         FW[hetzbot repo<br/>skills/, templates, docs]
     end
@@ -102,10 +102,9 @@ Restore a single service or rebuild a full host from tofu + restic.
 
 ```bash
 git clone https://github.com/tomspiegl/hetzbot
-claude   # or: pi
 ```
 
-Paste this prompt:
+Open a coding agent in the repo and paste:
 
 ```
 Set up a new hetzbot fleet named my-fleet at ~/my-fleet.
