@@ -1,6 +1,6 @@
 ---
 name: hetzbot-deploy
-description: Deploy the current fleet state to a host (rsync skills + services, install needed infra/runtimes, clone/build/start services). Triggers: user says "deploy", "push changes", "roll out". Runs `skills/ops/deploy/deploy.sh`.
+description: Deploy the current fleet state to a host (rsync skills + services, install needed infra/runtimes, clone/build/start services). Triggers: user says "deploy", "update", "upgrade", "pull", "push changes", "roll out". Runs `skills/ops/deploy/deploy.sh`.
 ---
 
 # Deploy
