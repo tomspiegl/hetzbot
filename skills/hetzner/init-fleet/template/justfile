@@ -30,7 +30,9 @@ plan:
         -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
         -var="restic_password=$RESTIC_PASSWORD" \
         -var="os_access_key=$AWS_ACCESS_KEY_ID" \
-        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY"
+        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY" \
+        -var="operator_ip=${OPERATOR_IP:-}" \
+        -var="ssh_keys=${SSH_KEYS:-[]}"
 
 apply:
     tofu -chdir=tofu apply \
@@ -41,7 +43,9 @@ apply:
         -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
         -var="restic_password=$RESTIC_PASSWORD" \
         -var="os_access_key=$AWS_ACCESS_KEY_ID" \
-        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY"
+        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY" \
+        -var="operator_ip=${OPERATOR_IP:-}" \
+        -var="ssh_keys=${SSH_KEYS:-[]}"
 
 destroy:
     tofu -chdir=tofu destroy \
@@ -52,7 +56,9 @@ destroy:
         -var="restic_repo=s3:$OS_ENDPOINT/$OS_BUCKET/restic" \
         -var="restic_password=$RESTIC_PASSWORD" \
         -var="os_access_key=$AWS_ACCESS_KEY_ID" \
-        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY"
+        -var="os_secret_key=$AWS_SECRET_ACCESS_KEY" \
+        -var="operator_ip=${OPERATOR_IP:-}" \
+        -var="ssh_keys=${SSH_KEYS:-[]}"
 
 # --- Deploy / audit (shell out to hetzbot's skills) ---
 

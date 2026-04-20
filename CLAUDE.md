@@ -19,7 +19,42 @@ init-fleet`. Scripts resolve fleet location via `HETZBOT_FLEET_ROOT`
 (defaults to `$PWD`). Framework location is `HETZBOT_ROOT` (set in the
 fleet's `.env`, typically `../hetzbot`).
 
+**Fleet discovery:** `.work/{fleet-name}/conf.json` tracks known
+fleets (path, creation date; schema in `skills/worklog-schema.json`).
+`.work/{fleet-name}/work.log` is an append-only operation log. At
+session start, check `.work/` to see which fleets exist and where
+they live. Skills append to the log via
+`source $HETZBOT_ROOT/skills/worklog.sh; worklog_entry <fleet> <msg>`.
+
 ## How to operate
+
+### Session start
+
+1. List `.work/*/conf.json` to discover known fleets.
+2. If exactly one fleet exists, treat it as the active fleet — read
+   its `conf.json` for the path and tail its `work.log` for recent
+   context.
+3. If multiple fleets exist, ask the operator which one to work on.
+4. If no fleets exist, the operator likely needs `init-fleet` first.
+
+### Worklog
+
+After every skill execution or significant operation, append a line:
+
+```bash
+source $HETZBOT_ROOT/skills/worklog.sh
+worklog_entry "<fleet-name>" "<skill-or-action>: <what happened>"
+```
+
+Examples:
+- `worklog_entry "prod" "add-host: created web-2 (cx22, fsn1)"`
+- `worklog_entry "prod" "deploy: deployed myapp@abc1234 to web-1"`
+- `worklog_entry "prod" "restore: restored myapp on web-1 from snapshot 3h ago"`
+
+This builds a durable timeline the agent can read in future sessions
+to understand what has happened on the fleet.
+
+### Skill execution
 
 When the user's request maps to a skill, open that skill's `SKILL.md`
 under `skills/<group>/<skill>/` and follow it step by step. Don't
@@ -46,6 +81,16 @@ improvise the program.
   runtime in the operator's shell, outside your context window.
 - To verify a secret is set without disclosing it:
   `[ -n "$VAR" ] && echo "ok" || echo "missing"`. Nothing else.
+
+### Password generation policy
+
+| Secret | Length | Charset | Rationale |
+|---|---|---|---|
+| `RESTIC_PASSWORD` | 48 chars | hex (`0-9a-f`) | High entropy, never typed manually |
+| `CONSOLE_ROOT_PASSWORD` | 12 chars | alphanumeric, no ambiguous (`0O`, `l1`) | Typed into Hetzner VNC console — must be short and unambiguous |
+| Per-service DB passwords | 64 hex | `openssl rand -hex 32` | Machine-only, via `lib.sh generate_password` |
+
+Never use base64 for passwords that may be typed manually (VNC, emergency console) — the `+`, `/`, `=` characters are unreliable across keyboard layouts.
 
 ### What you cannot do — tell the operator and wait
 
@@ -91,6 +136,10 @@ you share their session; treat that as a privilege, not an affordance.
 | `skills/runtimes/` | Language runtimes installed on-demand (node, python). |
 | `skills/hetzner/init-fleet/template/` | What a fleet repo looks like — `tofu/`, `hosts.tfvars`, `.env.example`, `justfile`, etc. Copied into the fleet on scaffold. |
 | `docs/` | End-user handbook. Start at `docs/README.md`. Split into concepts, architecture (mermaid), quickstart, skills, security, backups, operations, non-goals. |
+| `skills/worklog.sh` | Shared helper — manages `.work/{fleet}/conf.json` + `work.log`. Sourced by skills. |
+| `skills/worklog-schema.json` | JSON Schema for `conf.json`. |
+| `skills/worklog-template.json` | Template for `conf.json` (placeholders substituted by `worklog_init`). |
+| `.work/` | Local workstate (gitignored). `{fleet-name}/conf.json` + `work.log` per fleet. |
 | `justfile` | Single target — `tmux`. Fleet bootstrap is `bash skills/hetzner/init-fleet/init-fleet.sh <path> <name>`. All infra + deploy commands live in the fleet's justfile. |
 
 ### In each fleet repo (generated)

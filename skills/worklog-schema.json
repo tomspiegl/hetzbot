@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "hetzbot fleet worklog config",
+  "description": "Per-fleet local state in .work/{fleet-name}/conf.json",
+  "type": "object",
+  "required": ["fleet_name", "fleet_path", "created"],
+  "additionalProperties": false,
+  "properties": {
+    "fleet_name": {
+      "type": "string",
+      "description": "Short name used in log messages and directory naming"
+    },
+    "fleet_path": {
+      "type": "string",
+      "description": "Absolute path to the fleet repo on the operator's machine"
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp when the fleet was scaffolded"
+    }
+  }
+}

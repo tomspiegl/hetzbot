@@ -51,21 +51,37 @@ if git_init == "yes":
     if has_staged_changes(fleet_path):
         run(f'git -C {fleet_path} commit -m "scaffold {fleet_name} from hetzbot"')
 
-# 4. Instruct the operator on next steps.
+# 4. Create .env and fill in manual credentials.
 
-inform(f"""Fleet created at {fleet_path}.
+run(f"cp {fleet_path}/.env.example {fleet_path}/.env")
+inform("""Open .env and fill in these from the Hetzner Console:
+  HCLOUD_TOKEN          — Cloud Console → API Tokens
+  AWS_ACCESS_KEY_ID     — Cloud Console → Security → S3 Credentials
+  AWS_SECRET_ACCESS_KEY — (shown once when creating the S3 credential)""")
+ask("Press enter once all three are set in .env")
+
+# 5. Run setup-env.sh — creates the S3 bucket, generates
+# RESTIC_PASSWORD and CONSOLE_ROOT_PASSWORD. All generated secrets
+# are written directly into .env — they never appear in the conversation.
+
+run(f"bash $HETZBOT_ROOT/skills/hetzner/init-fleet/setup-env.sh {fleet_path} {fleet_name}")
+
+# 6. Operator fills optional values, then check-env validates.
+
+inform("Optionally fill DOMAIN in .env (only needed for public hosts).")
+run(f"bash $HETZBOT_ROOT/skills/hetzner/init-fleet/check-env.sh {fleet_path}")
+
+# 7. Next steps.
+
+inform(f"""Fleet ready at {fleet_path}.
 
 Next:
   cd {fleet_path}
-  cp .env.example .env
-  # fill in HETZBOT_ROOT, HCLOUD_TOKEN, AWS_ACCESS_KEY_ID,
-  #   AWS_SECRET_ACCESS_KEY, OS_ENDPOINT, OS_BUCKET, OS_REGION,
-  #   RESTIC_PASSWORD, CONSOLE_ROOT_PASSWORD, DOMAIN (if public)
   tofu -chdir=tofu init  # one-time: initialize the S3 backend
   tofu -chdir=tofu plan  # preview before any apply
 
-Add hosts via the add-host skill (edits hosts.tfvars).
-Add services via the add-service skill.""")
+Add hosts with the add-host skill.
+Add services with the add-service skill.""")
 ```
 
 ## What the scaffold contains

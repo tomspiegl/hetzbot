@@ -18,6 +18,5 @@ provider "hcloud" {
 }
 
 provider "hetznerdns" {
-  # Reads HETZNER_DNS_API_TOKEN from env. Only used when any host
-  # has public = true.
+  apitoken = var.domain != "" ? var.hetzner_dns_token : "unused"
 }

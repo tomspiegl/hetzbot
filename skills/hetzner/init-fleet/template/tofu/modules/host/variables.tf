@@ -41,3 +41,15 @@ variable "backups" {
   type        = bool
   default     = true
 }
+
+variable "ssh_keys" {
+  description = "List of Hetzner SSH key IDs to inject into the server."
+  type        = list(number)
+  default     = []
+}
+
+variable "operator_ip" {
+  description = "Operator's public IP for SSH access during bootstrap."
+  type        = string
+  default     = ""
+}

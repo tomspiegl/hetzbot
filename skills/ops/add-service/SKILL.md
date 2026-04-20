@@ -66,6 +66,18 @@ if https_facing == "yes":
 # Runtime is auto-detected from the repo's lockfile on the host at
 # deploy time. No question needed.
 
+db_restore_path = None
+has_db = ask("Does this service use Postgres?", choices=["yes", "no"], default="yes")
+if has_db == "yes":
+    restore = ask(
+        "Restore from an existing database dump? (local .sql.gz path, or 'no')",
+        default="no",
+    )
+    if restore != "no":
+        if not path_exists(restore) or not restore.endswith((".sql.gz", ".dump", ".sql")):
+            reject("must be a path to a .sql.gz, .dump, or .sql file")
+        db_restore_path = restore
+
 # 2. Scaffold services/<service_name>/
 
 write(f"services/{service_name}/source", repo_url)
@@ -150,6 +162,34 @@ if https_facing == "yes":
 if run(f"bash $HETZBOT_ROOT/skills/ops/deploy/deploy.sh {target_host}").exit_code != 0:
     fail("deploy failed — inspect the output; common cause: missing "
          "lockfile in the GitHub repo (deploy refuses without one)")
+
+# 5b. Restore database dump if provided.
+
+if db_restore_path:
+    inform(f"Uploading {db_restore_path} to {target_host}...")
+    run(f"scp {db_restore_path} {target_host}:/tmp/restore-{service_name}.sql.gz")
+
+    inform("Stopping service, restoring database...")
+    if shape == "long-running":
+        run(f"ssh {target_host} systemctl stop {service_name}")
+
+    # Drop and recreate to avoid conflicts with existing schema
+    run(f"ssh {target_host} 'sudo -u postgres psql -c \"DROP DATABASE IF EXISTS {service_name}\"'")
+    run(f"ssh {target_host} 'sudo -u postgres psql -c \"CREATE DATABASE {service_name} OWNER {service_name}\"'")
+
+    if db_restore_path.endswith(".sql.gz"):
+        run(f"ssh {target_host} 'gunzip -c /tmp/restore-{service_name}.sql.gz | sudo -u postgres psql {service_name}'")
+    elif db_restore_path.endswith(".dump"):
+        run(f"ssh {target_host} 'sudo -u postgres pg_restore -d {service_name} /tmp/restore-{service_name}.dump'")
+    else:
+        run(f"ssh {target_host} 'sudo -u postgres psql {service_name} < /tmp/restore-{service_name}.sql'")
+
+    run(f"ssh {target_host} rm /tmp/restore-{service_name}.*")
+
+    if shape == "long-running":
+        run(f"ssh {target_host} systemctl start {service_name}")
+
+    inform("Database restored.")
 
 # 6. Verify + review.
 

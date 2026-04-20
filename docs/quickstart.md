@@ -10,7 +10,7 @@ or a browser.
 | # | What | Where |
 |---|---|---|
 | 1 | Hetzner Cloud account + project | https://console.hetzner.cloud — create an API token with read+write scope |
-| 2 | Hetzner Object Storage bucket | same console — one per fleet; holds both tfstate and restic. Generate S3 access keys |
+| 2 | Hetzner Object Storage S3 credentials | Cloud Console → Security → S3 Credentials (generate once). `setup-env.sh` creates the bucket automatically |
 | 3 | Hetzner DNS zone | https://dns.hetzner.com — only if you'll serve HTTPS. Point registrar NS records at Hetzner |
 | 4 | Tailscale tailnet | https://login.tailscale.com — sign in with your work identity via OIDC |
 | 5 | your personal vault (e.g. 1Password, Bitwarden, macOS Keychain) | four items: `hcloud-token`, `object-storage`, `restic-password`, `console-root-password` |
@@ -51,11 +51,12 @@ cd hetzbot
 bash skills/hetzner/init-fleet/init-fleet.sh ../my-fleet my-fleet
 cd ../my-fleet
 
-# 3. Populate .env from your personal vault
+# 3. Populate .env — three values from the Hetzner Console
 cp .env.example .env
-#    Fill in HETZBOT_ROOT, HCLOUD_TOKEN, AWS_ACCESS_KEY_ID,
-#    AWS_SECRET_ACCESS_KEY, OS_ENDPOINT, OS_BUCKET, OS_REGION,
-#    RESTIC_PASSWORD, CONSOLE_ROOT_PASSWORD, DOMAIN (if public).
+#    Fill in HCLOUD_TOKEN, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+#    Then setup-env.sh creates the bucket and generates the rest:
+bash $HETZBOT_ROOT/skills/hetzner/init-fleet/setup-env.sh . my-fleet
+#    Optionally fill DOMAIN (only for public hosts).
 
 # 4. Initialize the tofu backend (one-time)
 just init
@@ -81,7 +82,7 @@ just review <hostname>
 
 ## What the agent cannot do for you
 
-- Create the Hetzner account, project, or bucket.
+- Create the Hetzner account or project (bucket + S3 credentials are automated via setup-object-storage.sh).
 - Register a domain.
 - Create or unlock the personal vault.
 - Sign into Tailscale with your personal identity.

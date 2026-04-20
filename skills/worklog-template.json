@@ -1,0 +1,5 @@
+{
+  "fleet_name": "{{FLEET_NAME}}",
+  "fleet_path": "{{FLEET_PATH}}",
+  "created": "{{CREATED}}"
+}

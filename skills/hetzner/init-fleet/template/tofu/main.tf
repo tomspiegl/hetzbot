@@ -9,6 +9,7 @@ locals {
       restic_password       = var.restic_password
       os_access_key         = var.os_access_key
       os_secret_key         = var.os_secret_key
+      operator_ip           = var.operator_ip
     })
   }
 }
@@ -25,4 +26,6 @@ module "host" {
   backups   = each.value.backups
   domain    = var.domain
   user_data = local.user_data[each.key]
+  ssh_keys    = var.ssh_keys
+  operator_ip = var.operator_ip
 }

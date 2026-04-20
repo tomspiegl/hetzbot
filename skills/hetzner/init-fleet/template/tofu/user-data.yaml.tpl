@@ -25,16 +25,12 @@ packages:
   - zstd
   - rsync
 
-users:
-  - name: root
-    lock_passwd: false
+ssh_pwauth: false
 
 chpasswd:
   expire: false
-  users:
-    - name: root
-      password: ${console_root_password}
-      type: text
+  list:
+    - root:${console_root_password}
 
 write_files:
   # --- unattended-upgrades with third-party origins ---
@@ -79,13 +75,11 @@ write_files:
   - path: /etc/ssh/sshd_config.d/99-hetzbot.conf
     permissions: "0644"
     content: |
-      PermitRootLogin no
+      PermitRootLogin prohibit-password
       PasswordAuthentication no
       PubkeyAuthentication yes
       KbdInteractiveAuthentication no
       AuthenticationMethods publickey
-      ListenAddress 100.64.0.0/10
-      ListenAddress fd7a:115c:a1e0::/48
 
   # --- Operator CLI helpers dir ---
   - path: /opt/hetzbot/README
@@ -139,8 +133,8 @@ runcmd:
   - install -d -m 0755 /etc/apt/keyrings
 
   # Tailscale (bootstrap — agent can't reach host without it)
-  - curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg | tee /etc/apt/keyrings/tailscale-archive-keyring.gpg > /dev/null
-  - chmod 0644 /etc/apt/keyrings/tailscale-archive-keyring.gpg
+  - curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null
+  - chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg
   - curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list | tee /etc/apt/sources.list.d/tailscale.list > /dev/null
 
   - apt-get update
@@ -153,6 +147,7 @@ runcmd:
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow in on tailscale0
+  - ufw allow from ${operator_ip} to any port 22 proto tcp
   - |
     if [ "${public}" = "true" ]; then
       ufw allow 443/tcp

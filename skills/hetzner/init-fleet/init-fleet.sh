@@ -36,6 +36,12 @@ find "$target" -type f \( -name '*.md' -o -name '*.example' -o -name '*.tf' -o -
   | xargs -0 -I{} sed -i.bak -e "s|{{FLEET_NAME}}|$name|g" {}
 find "$target" -type f -name '*.bak' -delete
 
+# Register fleet in .work/ so the agent knows where it lives.
+HETZBOT_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+export HETZBOT_ROOT
+source "$HETZBOT_ROOT/skills/worklog.sh"
+worklog_init "$name" "$target"
+
 echo "scaffolded $name at $target"
 echo ""
 echo "next:"

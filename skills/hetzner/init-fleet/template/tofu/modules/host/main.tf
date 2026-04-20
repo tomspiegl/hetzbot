@@ -32,6 +32,17 @@ resource "hcloud_firewall" "this" {
       source_ips = ["0.0.0.0/0", "::/0"]
     }
   }
+
+  # SSH from operator IP during bootstrap. Removed after Tailscale join.
+  dynamic "rule" {
+    for_each = var.operator_ip != "" ? [1] : []
+    content {
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "22"
+      source_ips = ["${var.operator_ip}/32"]
+    }
+  }
 }
 
 resource "hcloud_server" "this" {
@@ -42,6 +53,7 @@ resource "hcloud_server" "this" {
   user_data   = var.user_data
   backups     = var.backups
 
+  ssh_keys     = var.ssh_keys
   firewall_ids = [hcloud_firewall.this.id]
 
   public_net {
@@ -58,7 +70,7 @@ resource "hcloud_server" "this" {
   lifecycle {
     # user_data changes after first boot don't re-run cloud-init —
     # avoid recreating the server on template edits.
-    ignore_changes = [user_data, image]
+    ignore_changes = [user_data, image, ssh_keys]
   }
 }
 

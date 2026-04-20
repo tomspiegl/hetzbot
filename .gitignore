@@ -28,6 +28,9 @@ secrets.auto.tfvars
 *.swp
 *~
 
+# Local workstate (fleet configs + operation log, per operator)
+.work/
+
 # Temporary
 tmp/
 *.bak
