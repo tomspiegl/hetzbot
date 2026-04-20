@@ -226,6 +226,7 @@ the Markdown.
 - [Restic](skills/infra/restic/SKILL.md)
 - [Caddy](skills/infra/caddy/SKILL.md) (public hosts only)
 - [Postgres](skills/infra/postgres/SKILL.md)
+- [Google APIs](skills/infra/google/SKILL.md) (Gmail, Drive — shared OAuth2 credentials)
 - [pi (pi.dev coding agent)](skills/infra/pi/SKILL.md) — optional; per-host, operator-invoked
 
 ### Language runtimes (installed on-demand per service)
