@@ -16,6 +16,20 @@ restic.
 | `install.sh` | `apt-get install -y restic`. Idempotent. |
 | `review.sh` | Audits: restic binary present, `/etc/hetzbot/restic.env` populated, repo reachable, `restic check --read-data-subset 1%` passes monthly (not every review — optional). |
 
+## Bucket layout
+
+Restic shares the fleet's Object Storage bucket with tofu state.
+Each lives under its own prefix to keep things clean:
+
+| Prefix | Written by | Contents |
+|---|---|---|
+| `<fleet-name>/` | OpenTofu | `terraform.tfstate` |
+| `restic/` | Restic | Encrypted backup repo (data, index, keys, snapshots) |
+
+The `RESTIC_REPOSITORY` value includes the `/restic` suffix, e.g.
+`s3:https://fsn1.your-objectstorage.com/hetz-fleet-state/restic`.
+The fleet's justfile constructs this as `s3:$OS_ENDPOINT/$OS_BUCKET/restic`.
+
 ## How credentials flow
 
 `/etc/hetzbot/restic.env` is written by cloud-init (tofu renders in

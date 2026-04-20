@@ -212,6 +212,7 @@ the Markdown.
 - [Snapshot a host](skills/hetzner/snapshot-host/SKILL.md) (manual Hetzner snapshot before risky changes)
 - [Check fleet health](skills/hetzner/check-fleet/SKILL.md)
 - [Review a host](skills/hetzner/review-host/SKILL.md) (orchestrates each skill's own review)
+- [Verify fleet](skills/hetzner/verify-fleet/SKILL.md) (post-setup end-to-end verification)
 
 ### Services
 - [Add a service](skills/ops/add-service/SKILL.md) (program style)

@@ -21,6 +21,9 @@ override.tf.json
 # Local tofu variable overrides (non-hosts.tfvars values)
 secrets.auto.tfvars
 
+# SSH keys (should live in ~/.ssh)
+id_*
+
 # Editor / OS
 .DS_Store
 .idea/

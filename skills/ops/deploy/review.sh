@@ -82,7 +82,7 @@ elif ! command -v restic >/dev/null 2>&1; then
   finding CRITICAL deploy:backup "restic binary not installed"
 else
   set -a; . /etc/hetzbot/restic.env; set +a
-  snap_time=$(restic snapshots --last 1 --json 2>/dev/null | jq -r '.[0].time // "none"' 2>/dev/null || echo err)
+  snap_time=$(restic snapshots --latest 1 --json 2>/dev/null | jq -r '.[0].time // "none"' 2>/dev/null || echo err)
   case "$snap_time" in
     none) finding HIGH deploy:backup "restic repo has no snapshots yet" ;;
     err)  finding HIGH deploy:backup "restic snapshots query failed" ;;

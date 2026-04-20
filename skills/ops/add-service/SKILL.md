@@ -191,7 +191,7 @@ if db_restore_path:
 
     inform("Database restored.")
 
-# 6. Verify + review.
+# 6. Verify service + backup round-trip.
 
 if shape == "long-running":
     state = run(f"ssh {target_host} systemctl is-active {service_name}").stdout.strip()
@@ -199,6 +199,23 @@ if shape == "long-running":
         warn(f"service not active; journalctl -u {service_name} -n 100")
 else:
     run(f"ssh {target_host} systemctl is-enabled {service_name}.timer")
+
+# 6b. If the service has Postgres, run a backup and verify the dump exists.
+
+if has_db == "yes":
+    inform("Running backup to verify Postgres dump works...")
+    run(f"ssh root@{target_host} 'set -a && . /etc/hetzbot/restic.env && set +a && bash /opt/hetzbot/skills/ops/deploy/backup-now.sh'")
+
+    dump_file = f"/var/backups/pg/{service_name}-$(date +%Y-%m-%d).dump"
+    dump_check = run(f"ssh root@{target_host} 'test -s {dump_file} && echo ok'")
+    if dump_check.strip() == "ok":
+        dump_size = run(f"ssh root@{target_host} 'du -h {dump_file} | cut -f1'")
+        inform(f"Backup verified: {dump_file} ({dump_size.strip()})")
+    else:
+        warn(f"Postgres dump not found at {dump_file} — check backup hook")
+
+    snap_check = run(f"ssh root@{target_host} 'set -a && . /etc/hetzbot/restic.env && set +a && restic snapshots --last 1 --json | jq -r \".[0].time\"'")
+    inform(f"Latest restic snapshot: {snap_check.strip()}")
 
 review_exit = run(f"bash $HETZBOT_ROOT/skills/hetzner/review-host/review.sh {target_host}").exit_code
 if review_exit >= 1:
