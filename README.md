@@ -8,28 +8,35 @@ agent following documented skill playbooks.
 
 ```mermaid
 graph TB
-    subgraph Operator["Operator laptop"]
-        Agent[Coding agent]
-        Fleet[Fleet repo<br/>hosts.tfvars, services/, .env]
-        FW[hetzbot repo<br/>skills/, templates, docs]
+    subgraph Laptop["💻 Operator laptop"]
+        Agent["🤖 Agent"]
+        subgraph HB["📁 hetzbot/"]
+            Skills["skills/"]
+            Docs["docs/"]
+        end
+        subgraph HF["📁 hetz-fleet/"]
+            Tofu["tofu/"]
+            Services["services/"]
+            Hosts["hosts.tfvars"]
+        end
     end
 
-    subgraph Hetzner["Hetzner Cloud"]
-        API[Cloud API]
-        subgraph Hosts["Hosts (Tailscale mesh)"]
-            H1["hetz-1<br/>Postgres, tenderbee,<br/>Google API"]
-            H2["hetz-2<br/>..."]
+    subgraph Hetzner["☁️ Hetzner Cloud"]
+        API["Cloud API"]
+        subgraph Servers["🖥️ Servers (Tailscale mesh)"]
+            H1["hetz-1"]
+            H2["hetz-2"]
         end
-        subgraph S3["Object Storage"]
-            TFS["hetz-fleet-state<br/>tofu state"]
-            B1["hetz-1 bucket<br/>restic backups"]
-            B2["hetz-2 bucket<br/>restic backups"]
+        subgraph S3["🪣 Object Storage"]
+            TFS["hetz-fleet-state"]
+            B1["hetz-1"]
+            B2["hetz-2"]
         end
     end
 
     Agent -->|tofu apply| API
-    API --> Hosts
-    Agent -->|deploy over Tailscale| Hosts
+    API --> Servers
+    Agent -->|deploy over Tailscale| Servers
     H1 -->|encrypted backups| B1
     H2 -->|encrypted backups| B2
     Agent -->|state read/write| TFS
