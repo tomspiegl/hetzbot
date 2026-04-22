@@ -122,6 +122,12 @@ MemoryDenyWriteExecute=true
 SystemCallArchitectures=native
 HARDEN
 
+for extra in "$manifest"/*.conf; do
+  [ -f "$extra" ] || continue
+  install -m 0644 "$extra" "$hardening_dir/$(basename "$extra")"
+  log "$name: installed drop-in $(basename "$extra")"
+done
+
 # --- 7. Enable + start ---
 systemctl daemon-reload
 if [ -f "$timer_src" ]; then
