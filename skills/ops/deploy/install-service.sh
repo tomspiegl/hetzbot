@@ -93,18 +93,20 @@ if [ ! -f "/srv/$name/.env" ]; then
 fi
 
 # --- 6. Install systemd unit + hardening drop-in ---
+# Agent/operator-driven services (no daemon, no timer) can omit the .service
+# file entirely. Skip the systemd setup in that case.
 unit_src="$manifest/$name.service"
-[ -f "$unit_src" ] || fail "$unit_src missing"
-install -m 0644 "$unit_src" "/etc/systemd/system/$name.service"
+if [ -f "$unit_src" ]; then
+  install -m 0644 "$unit_src" "/etc/systemd/system/$name.service"
 
-timer_src="$manifest/$name.timer"
-if [ -f "$timer_src" ]; then
-  install -m 0644 "$timer_src" "/etc/systemd/system/$name.timer"
-fi
+  timer_src="$manifest/$name.timer"
+  if [ -f "$timer_src" ]; then
+    install -m 0644 "$timer_src" "/etc/systemd/system/$name.timer"
+  fi
 
-hardening_dir="/etc/systemd/system/$name.service.d"
-install -d -m 0755 "$hardening_dir"
-cat > "$hardening_dir/90-hardening.conf" <<HARDEN
+  hardening_dir="/etc/systemd/system/$name.service.d"
+  install -d -m 0755 "$hardening_dir"
+  cat > "$hardening_dir/90-hardening.conf" <<HARDEN
 [Service]
 NoNewPrivileges=true
 PrivateTmp=true
@@ -122,18 +124,21 @@ MemoryDenyWriteExecute=true
 SystemCallArchitectures=native
 HARDEN
 
-for extra in "$manifest"/*.conf; do
-  [ -f "$extra" ] || continue
-  install -m 0644 "$extra" "$hardening_dir/$(basename "$extra")"
-  log "$name: installed drop-in $(basename "$extra")"
-done
+  for extra in "$manifest"/*.conf; do
+    [ -f "$extra" ] || continue
+    install -m 0644 "$extra" "$hardening_dir/$(basename "$extra")"
+    log "$name: installed drop-in $(basename "$extra")"
+  done
 
-# --- 7. Enable + start ---
-systemctl daemon-reload
-if [ -f "$timer_src" ]; then
-  systemctl enable --now "$name.timer"
+  # --- 7. Enable + start ---
+  systemctl daemon-reload
+  if [ -f "$timer_src" ]; then
+    systemctl enable --now "$name.timer"
+  else
+    systemctl enable --now "$name.service"
+  fi
 else
-  systemctl enable --now "$name.service"
+  log "$name: no .service in manifest — agent-driven, skipping systemd setup"
 fi
 
 log "$name: installed"
