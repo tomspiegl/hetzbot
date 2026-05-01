@@ -21,6 +21,8 @@ check_lockfile() {
     fail "$dir: go.mod without go.sum (lockfile required)"
   elif [ -f "$dir/Cargo.toml" ] && [ ! -f "$dir/Cargo.lock" ]; then
     fail "$dir: Cargo.toml without Cargo.lock (lockfile required)"
+  elif [ -f "$dir/pom.xml" ] && [ ! -x "$dir/mvnw" ]; then
+    fail "$dir: pom.xml without ./mvnw wrapper (Maven projects must commit the wrapper)"
   fi
 }
 

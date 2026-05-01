@@ -1,6 +1,15 @@
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    # Built locally so we can layer in per-host extensions (e.g. pg_partman)
+    # without depending on a registry mirror. POSTGRES_IMAGE / POSTGRES_EXTRA_PKGS
+    # are set by deploy.sh from hosts.tfvars (postgres_image / postgres_extra_pkgs).
+    build:
+      context: .
+      args:
+        BASE: ${POSTGRES_IMAGE:-pgvector/pgvector:pg16}
+        EXTRA_PKGS: ${POSTGRES_EXTRA_PKGS:-}
+        PARTMAN_VERSION: ${POSTGRES_PARTMAN_VERSION:-}
+    image: hetzbot-postgres:local
     container_name: postgres
     restart: unless-stopped
     environment:

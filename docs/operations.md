@@ -116,6 +116,50 @@ by severity. Exit codes make it usable as a cron gate or CI check.
   remove.
 - **Monthly** — operator hygiene.
 
+## Egress slowdowns from Hetzner Cloud
+
+Hetzner Cloud nodes occasionally hit **single-stream throughput stalls**
+on outbound HTTPS to specific CDNs (Cloudflare-fronted endpoints in
+particular). Symptoms:
+
+- A long-running download (apt, docker pull, `./mvnw` self-installing
+  Maven, a single fat jar) starts fine, transfers a few hundred KB,
+  then either crawls at <50 KB/s or stalls completely. `ss -tnp` shows
+  a single ESTAB connection holding zero send/recv queue; the process
+  sits in `do_sel`.
+- Many small parallel transfers (Maven dependency tree fan-out, apt
+  package downloads) work fine because each transaction completes
+  before whatever throttle kicks in.
+- Other connections from the same host stay healthy.
+- A `curl` test from the same host to the same URL may succeed in
+  milliseconds the moment after a different download stalled — the
+  effect is intermittent and per-flow, not a host-wide outage.
+
+**Recovery, in order of cost:**
+
+1. **Reboot the affected host.** `ssh <host> systemctl reboot`. The
+   egress path appears to re-pick after boot and throughput returns to
+   normal. Tailscale rejoins automatically (state persists at
+   `/var/lib/tailscale/tailscaled.state`); SSH comes back in ~1-2 min.
+   Verify with a quick curl test:
+   ```bash
+   ssh <host> 'curl -s -o /dev/null -w "%{speed_download}/s\n" \
+     https://repo.maven.apache.org/maven2/.../some.jar'
+   ```
+   Expect tens of MB/s; if you see KB/s, see step 2.
+2. **Force IPv4 preference** in `/etc/gai.conf`. Some routes are
+   degraded only on IPv6.
+   ```bash
+   sed -i.bak 's|^#precedence ::ffff:0:0/96|precedence ::ffff:0:0/96  100|' /etc/gai.conf
+   ```
+3. **Use a different mirror or registry** (e.g. Google's Maven Central
+   mirror at `https://maven-central.storage-download.googleapis.com/maven2`).
+   Hit-or-miss — sometimes the alternative path is also slow.
+
+The default `Maven` install via the `runtimes/java` skill uses apt's
+3.8.x build precisely so we never depend on the wrapper self-download
+(see `services/iam/build.sh` for the prefer-system-`mvn` pattern).
+
 ## Emergency access
 
 If Tailscale itself is down (control plane outage, your laptop lost

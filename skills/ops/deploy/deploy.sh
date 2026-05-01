@@ -45,6 +45,9 @@ host_info=$(jq -e ".\"$host\"" <<<"$hosts_json") \
 
 public=$(jq -r '.public' <<<"$host_info")
 services=$(jq -r '.services[]' <<<"$host_info")
+postgres_image=$(jq -r '.postgres_image // "pgvector/pgvector:pg16"' <<<"$host_info")
+postgres_extra_pkgs=$(jq -r '.postgres_extra_pkgs // ""' <<<"$host_info")
+postgres_partman_version=$(jq -r '.postgres_partman_version // ""' <<<"$host_info")
 
 ssh_target="root@$host"
 
@@ -93,7 +96,11 @@ for skill_dir in "$HETZBOT_ROOT"/skills/infra/*/; do
   compose="$skill_dir/docker-compose.yml"
   [ -f "$compose" ] || continue
   log "skill:$skill — docker compose up"
-  run "ssh $ssh_target 'cd /opt/hetzbot/skills/infra/$skill && sudo docker compose up -d --wait'"
+  if [ "$skill" = "postgres" ]; then
+    run "ssh $ssh_target 'cd /opt/hetzbot/skills/infra/$skill && sudo POSTGRES_IMAGE=\"$postgres_image\" POSTGRES_EXTRA_PKGS=\"$postgres_extra_pkgs\" POSTGRES_PARTMAN_VERSION=\"$postgres_partman_version\" docker compose up -d --build --wait'"
+  else
+    run "ssh $ssh_target 'cd /opt/hetzbot/skills/infra/$skill && sudo docker compose up -d --wait'"
+  fi
 done
 
 # --- 5. Deploy each native service ---
@@ -103,6 +110,13 @@ for svc in $services; do
   src_file="services/$svc/source"
   [ -f "$src_file" ] || fail "services/$svc/source missing"
   source_url=$(tr -d '[:space:]' < "$src_file")
+
+  # If the repo is fetched over SSH (private GitHub), make sure the host
+  # has a deploy key registered before install-service.sh tries to clone.
+  if [[ "$source_url" =~ ^git@github\.com:([^/]+/[^.]+)\.git ]]; then
+    repo="${BASH_REMATCH[1]}"
+    run "bash '$HETZBOT_ROOT/skills/infra/github/ensure-deploy-key.sh' '$host' '$svc' '$repo'"
+  fi
 
   run "ssh $ssh_target 'sudo /opt/hetzbot/skills/ops/deploy/install-service.sh $svc \"$source_url\"'"
 done

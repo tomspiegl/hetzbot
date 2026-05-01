@@ -27,11 +27,17 @@ log "restic init (no-op if already initialized)"
 restic snapshots >/dev/null 2>&1 || restic init
 
 log "restic backup"
+# Exclusions:
+#   *_repo/node_modules /target /.venv — rebuilt from lockfile, no value
+#   pgdata — Postgres data files are not safely captured live (the on-disk
+#     state is not a consistent snapshot without quiescing). The per-service
+#     pg_dump in /var/backups/pg/ is the canonical restore path.
 restic backup \
   --tag hetzbot \
   --exclude /srv/*/repo/node_modules \
   --exclude /srv/*/repo/target \
   --exclude /srv/*/repo/.venv \
+  --exclude /var/lib/docker/volumes/pgdata \
   /srv \
   /var/lib/docker/volumes \
   /var/lib/caddy \

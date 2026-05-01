@@ -58,6 +58,8 @@ if [ -f "$repo_dir/package-lock.json" ]; then
   /opt/hetzbot/skills/runtimes/node/install.sh
 elif [ -f "$repo_dir/uv.lock" ] || [ -f "$repo_dir/pyproject.toml" ]; then
   /opt/hetzbot/skills/runtimes/python/install.sh
+elif [ -f "$repo_dir/mvnw" ] && [ -f "$repo_dir/pom.xml" ]; then
+  /opt/hetzbot/skills/runtimes/java/install.sh
 fi
 
 if [ -x "$manifest/build.sh" ] || [ -f "$manifest/build.sh" ]; then
@@ -78,6 +80,9 @@ else
   elif [ -f "$repo_dir/Cargo.lock" ]; then
     log "$name: default Rust build"
     sudo -u "$name" bash -c "cd '$repo_dir' && cargo build --release --locked"
+  elif [ -f "$repo_dir/mvnw" ] && [ -f "$repo_dir/pom.xml" ]; then
+    log "$name: default Maven build (./mvnw -B -DskipTests package)"
+    sudo -u "$name" bash -c "cd '$repo_dir' && ./mvnw -B -DskipTests package"
   fi
 fi
 
