@@ -30,6 +30,16 @@ if ! id "$name" >/dev/null 2>&1; then
 fi
 install -d -m 0750 -o "$name" -g "$name" "/srv/$name"
 
+# On public hosts caddy may need to serve static assets out of /srv/$name (e.g. a
+# built SPA under /srv/$name/dist). The dir is 0750 $name:$name, so caddy can't
+# even traverse it without group membership. Grant it idempotently; harmless for
+# services that don't use caddy.
+if id caddy >/dev/null 2>&1 && ! id -nG caddy | tr ' ' '\n' | grep -qx "$name"; then
+  log "$name: adding caddy to group $name (static asset access)"
+  usermod -aG "$name" caddy
+  systemctl restart caddy 2>/dev/null || true
+fi
+
 # --- 2. Clone or pull ---
 repo_dir="/srv/$name/repo"
 if [ ! -d "$repo_dir/.git" ]; then
