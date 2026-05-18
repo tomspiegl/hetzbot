@@ -6,4 +6,4 @@ _default:
 
 # Open or attach a tmux session for this project.
 tmux:
-    tmux new-session -A -s hetzbot
+    ~/scripts/tmux-session.sh hetzbot
