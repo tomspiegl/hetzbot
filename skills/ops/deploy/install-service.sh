@@ -64,11 +64,18 @@ fi
 check_lockfile "$repo_dir"
 
 # --- 4. Ensure runtime is installed (idempotent per skill) + Build ---
-if [ -f "$repo_dir/package-lock.json" ]; then
+# Runtime is normally inferred from a lockfile at the cloned repo root.
+# Multi-project repos (one git repo with several service subdirs) have
+# no root lockfile; they declare the runtime explicitly in the
+# manifest at services/$name/runtime (one line: node|python|java).
+runtime_hint=""
+[ -f "$manifest/runtime" ] && runtime_hint=$(head -n1 "$manifest/runtime" | tr -d '[:space:]')
+
+if [ -f "$repo_dir/package-lock.json" ] || [ "$runtime_hint" = "node" ]; then
   /opt/hetzbot/skills/runtimes/node/install.sh
-elif [ -f "$repo_dir/uv.lock" ] || [ -f "$repo_dir/pyproject.toml" ]; then
+elif [ -f "$repo_dir/uv.lock" ] || [ -f "$repo_dir/pyproject.toml" ] || [ "$runtime_hint" = "python" ]; then
   /opt/hetzbot/skills/runtimes/python/install.sh
-elif [ -f "$repo_dir/mvnw" ] && [ -f "$repo_dir/pom.xml" ]; then
+elif { [ -f "$repo_dir/mvnw" ] && [ -f "$repo_dir/pom.xml" ]; } || [ "$runtime_hint" = "java" ]; then
   /opt/hetzbot/skills/runtimes/java/install.sh
 fi
 
