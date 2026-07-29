@@ -155,9 +155,15 @@ HARDEN
   # --- 7. Enable + start ---
   systemctl daemon-reload
   if [ -f "$timer_src" ]; then
+    # Timer fires the freshly pulled code on its next tick; don't interrupt
+    # a run in flight with a restart.
     systemctl enable --now "$name.timer"
   else
-    systemctl enable --now "$name.service"
+    # Long-running services must be restarted so the freshly pulled code
+    # actually loads — `enable --now` is a no-op when the unit is already
+    # running. restart also starts the unit if it was stopped.
+    systemctl enable "$name.service"
+    systemctl restart "$name.service"
   fi
 else
   log "$name: no .service in manifest — agent-driven, skipping systemd setup"
