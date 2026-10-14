@@ -102,13 +102,15 @@ if [ "$ufw_out" = "UFW_UNAVAILABLE" ] || ! grep -q 'Status: active' <<<"$ufw_out
   finding CRITICAL firewall "ufw not active"
 else
   finding OK firewall "ufw active"
-  # Flag unexpected allow-from-Anywhere rules. 443/tcp is allowed on public hosts only.
+  # Flag unexpected allow-from-Anywhere rules. 443/tcp is allowed on public
+  # hosts only; 41641/udp is Tailscale WireGuard (direct peer connections).
   while read -r line; do
     [ -z "$line" ] && continue
     if grep -qE 'ALLOW +(IN )?+Anywhere' <<<"$line"; then
       port=$(awk '{print $1}' <<<"$line")
       case "$port" in
         443/tcp|443) : ;;  # expected on public hosts
+        41641/udp) : ;;    # tailscaled WireGuard
         *) finding CRITICAL firewall "ufw allows $port from Anywhere (unexpected)" ;;
       esac
     fi

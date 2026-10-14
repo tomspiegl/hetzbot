@@ -33,6 +33,17 @@ resource "hcloud_firewall" "this" {
     }
   }
 
+  # Tailscale WireGuard. Lets peers behind hard NAT connect directly
+  # instead of falling back to rate-limited DERP relays. WireGuard is
+  # silent to unauthenticated packets — no handshake reply without a
+  # known peer key — so this exposes no probeable service.
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "41641"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+
   # SSH from operator IP during bootstrap. Removed after Tailscale join.
   dynamic "rule" {
     for_each = var.operator_ip != "" ? [1] : []

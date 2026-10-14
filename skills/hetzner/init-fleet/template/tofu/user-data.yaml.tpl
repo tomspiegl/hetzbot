@@ -45,6 +45,7 @@ write_files:
           "origin=deb.nodesource.com";
           "origin=cloudsmith,label=Caddy";
           "origin=apt.postgresql.org,codename=$${distro_codename}-pgdg";
+          "origin=Tailscale,label=Tailscale";
       };
       Unattended-Upgrade::Automatic-Reboot "true";
       Unattended-Upgrade::Automatic-Reboot-Time "04:00";
@@ -155,6 +156,8 @@ runcmd:
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow in on tailscale0
+  # Tailscale WireGuard (direct peer connections, see hcloud_firewall).
+  - ufw allow 41641/udp
   - ufw allow from ${operator_ip} to any port 22 proto tcp
   - |
     if [ "${public}" = "true" ]; then

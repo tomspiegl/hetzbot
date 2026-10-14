@@ -24,9 +24,10 @@ graph TB
 **Four rings, each default-deny:**
 
 1. **Hetzner Cloud firewall** — at the hypervisor edge. Headless:
-   nothing in. Public: 443 in. No SSH, no port 80, no anything else.
+   only Tailscale's UDP 41641 in. Public: plus 443. No SSH, no port 80,
+   no anything else.
 2. **Host ufw** — `default deny incoming`, `allow in on tailscale0`,
-   conditional `allow 443/tcp` on public hosts.
+   `allow 41641/udp`, conditional `allow 443/tcp` on public hosts.
 3. **sshd hardening** — `PasswordAuthentication no`, `PermitRootLogin
    prohibit-password`, `ListenAddress <tailscale-ip>` only. sshd
    depends on tailscaled via systemd drop-in. No public SSH.
@@ -36,7 +37,8 @@ graph TB
 
 ## Closed by default
 
-A fresh host exposes **nothing** to the internet. `public = true` in
+A fresh host exposes **nothing** to the internet beyond Tailscale's
+WireGuard port (silent, see below). `public = true` in
 `hosts.tfvars` opts in to HTTPS:
 
 - Creates a DNS A/AAAA record.
@@ -45,6 +47,19 @@ A fresh host exposes **nothing** to the internet. `public = true` in
 
 Port 80 is **never** opened. ACME uses TLS-ALPN-01 on 443 itself — no
 plaintext listener. HTTP is not an access path at all.
+
+### Why UDP 41641 is open
+
+It is tailscaled's WireGuard port. Without it, an operator behind a
+hard NAT (`tailscale netcheck` → `MappingVariesByDestIP: true`) can't
+hole-punch to a host whose firewall drops unsolicited inbound, so all
+traffic falls back to rate-limited DERP relays — slow for bulk
+transfers. Opening it is safe: WireGuard never replies to a packet
+not authenticated with a known peer key, so scanners see nothing, and
+tailnet ACLs still decide who reaches what. The residual risk is a
+tailscaled bug, which is why the Tailscale apt origin is in
+unattended-upgrades. Verify with `tailscale ping <host>` → `via
+<public-ip>:41641`, not `via DERP`.
 
 ## Operator access
 

@@ -74,7 +74,7 @@ any CRITICAL — usable as a cron gate or CI check.
 Host-basics (this skill):
 - disk `/` and `/var`, memory, systemd state, reboot-required
 - unattended-upgrades freshness, needrestart, debsecan
-- ufw active + no unexpected Anywhere rules
+- ufw active + no unexpected Anywhere rules (443/tcp, 41641/udp expected)
 - sshd hardening (no password auth, no root login, Tailscale-only listen)
 - public listeners
 - Tailscale online
